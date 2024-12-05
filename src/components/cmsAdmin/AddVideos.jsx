@@ -60,7 +60,7 @@ const AddVideos = () => {
   const [isFetching, setIsFetching] = useState(false);
 
   // Define API Base URL
-  const API_BASE_URL = 'http://localhost:5001/api/videomedia';
+  const API_BASE_URL = 'https://api.gkcc.world/api/videomedia';
 
   useEffect(() => {
     fetchSubmittedVideos();

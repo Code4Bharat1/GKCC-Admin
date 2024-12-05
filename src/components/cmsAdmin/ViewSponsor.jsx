@@ -12,7 +12,7 @@ const ViewSponsor = () => {
   useEffect(() => {
     const fetchSponsors = async () => {
       try {
-        const response = await axios.get("http://localhost:5001/api/sponsor/viewsponsors");
+        const response = await axios.get("https://api.gkcc.world/api/sponsor/viewsponsors");
         console.log("Fetched sponsors:", response.data); // Debug the response
 
         // Extract the sponsor array from the `message` field
@@ -57,7 +57,7 @@ const ViewSponsor = () => {
   // Handle saving edits
   const handleSave = async (id) => {
     try {
-      const url = `http://localhost:5001/api/sponsor/editsponsorsdetails/${id}`;
+      const url = `https://api.gkcc.world/api/sponsor/editsponsorsdetails/${id}`;
       console.log("PUT Request URL:", url); // Debug the URL being used
 
       const formData = new FormData();

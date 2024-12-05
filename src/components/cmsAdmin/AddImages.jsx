@@ -72,7 +72,7 @@ const AddImages = () => {
   const fetchSubmittedImages = async () => {
     setIsFetching(true); // Start fetching
     try {
-      const response = await axios.get('http://localhost:5001/api/photomedia/viewphotosofmediapage');
+      const response = await axios.get('https://api.gkcc.world/api/photomedia/viewphotosofmediapage');
       console.log('Fetched Submitted Images Response:', response);
       console.log('Fetched Submitted Images Data:', response.data);
 
@@ -154,7 +154,7 @@ const AddImages = () => {
     if (!imageToDelete) return;
 
     try {
-      await axios.delete(`http://localhost:5001/api/photomedia/deletephotomedia/${imageToDelete}`);
+      await axios.delete(`https://api.gkcc.world/api/photomedia/deletephotomedia/${imageToDelete}`);
       const updatedSubmittedImages = submittedImages.filter((image) => image._id !== imageToDelete);
       setSubmittedImages(updatedSubmittedImages);
       setAlertMessage('Image deleted successfully.');
@@ -184,7 +184,7 @@ const AddImages = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5001/api/photomedia/addphotosofmediapage', formData, {
+      const response = await axios.post('https://api.gkcc.world/api/photomedia/addphotosofmediapage', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
