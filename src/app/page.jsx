@@ -35,7 +35,10 @@ const LoginPage = () => {
             router.push("/landingSA");
           } else if (adminPosition === "Association Head") {
             router.push("/landingAH");
-          } else {
+          } else if (adminPosition === "CMSAdmin") {
+            router.push("/cms-admin");
+          }
+          else {
             setError("Invalid position received. Please contact support.");
           }
         } catch (err) {
@@ -71,7 +74,10 @@ const LoginPage = () => {
         router.push("/landingSA");
       } else if (admin === "Association Head") {
         router.push("/landingAH");
-      } else {
+      } else if (admin === "CMSAdmin") {
+        router.push("/cms-admin");
+      }
+      else {
         setError("Invalid position received. Please contact support.");
       }
     } catch (error) {
