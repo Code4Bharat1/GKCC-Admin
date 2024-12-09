@@ -6,22 +6,23 @@ const AddSponsor = () => {
     name: '',
     description: '',
     logo: null,
-    brochure: null,
-    link: '',
+    brochure: '', 
+    websitelink: '',
   });
   const [logoError, setLogoError] = useState('');
   const [submissionError, setSubmissionError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    setFormData({ ...formData, [name]: files[0] });
-  };
+  // const handleFileChange = (e) => {
+  //   const { name, files } = e.target;
+  //   setFormData({ ...formData, [name]: files[0] });
+  // };
 
   const handleLogoValidation = (e) => {
     const file = e.target.files[0];
@@ -54,26 +55,27 @@ const AddSponsor = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (logoError) {
       return;
     }
-  
+    setIsLoading(true);
+
     const data = new FormData();
     data.append('name', formData.name);
     data.append('description', formData.description);
     if (formData.logo) {
       data.append('logo', formData.logo);
     }
-    if (formData.brochure) {
-      data.append('brochure', formData.brochure);
-    }
-    data.append('link', formData.link);
-  
+   
+    data.append('brochure', formData.brochure); // Pass brochure URL
+    
+    data.append('websitelink', formData.websitelink);
+
     console.log('Submitting data:', Object.fromEntries(data.entries())); // Logs the payload for debugging
-  
+
     try {
-      const response = await axios.post('https://api.gkcc.world/api/sponsor/addSponsor', data, {
+      const response = await axios.post('http://localhost:5001/api/sponsor/addSponsor', data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -83,6 +85,8 @@ const AddSponsor = () => {
     } catch (error) {
       setSubmissionError('Failed to add sponsor. Please try again.');
       console.error('Submission error:', error);
+    }finally {
+      setIsLoading(false); // Stop loading spinner
     }
   };
 
@@ -132,14 +136,16 @@ const AddSponsor = () => {
           />
           {logoError && <p className="text-red-500 text-sm mt-1">{logoError}</p>}
         </div>
-        {/* Upload Brochure */}
+        {/* Brochure URL */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Upload Brochure (Optional)</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Brochure URL (Optional)</label>
           <input
-            type="file"
+            type="url"
             name="brochure"
+            value={formData.brochure}
+            onChange={handleInputChange}
+            placeholder="Enter brochure link"
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onChange={handleFileChange}
           />
         </div>
         {/* Uploading Link */}
@@ -147,8 +153,8 @@ const AddSponsor = () => {
           <label className="block text-sm font-medium text-gray-700 mb-1">Upload Link (Optional)</label>
           <input
             type="url"
-            name="link"
-            value={formData.link}
+            name="websitelink"
+            value={formData.websitelink}
             onChange={handleInputChange}
             placeholder="Enter link"
             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -157,10 +163,26 @@ const AddSponsor = () => {
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300"
-          disabled={!!logoError} // Disable if there's a logo error
+          className={`w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300 ${
+            isLoading ? 'cursor-not-allowed opacity-50' : ''
+          }`}disabled={isLoading} // Disable the button when loading
+          aria-busy={isLoading}
+          aria-label="Submit images"
+          
         >
-          Submit
+         {isLoading ? (
+          <>
+            {/* SVG Spinner */}
+            <svg
+              className="animate-spin h-5 w-5 mr-3 border-t-2 border-b-2 border-white rounded-full"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            ></svg>
+            Submitting...
+          </>
+        ) : (
+          'Submit'
+        )}
         </button>
       </form>
     </div>

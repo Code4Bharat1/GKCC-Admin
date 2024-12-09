@@ -7,15 +7,14 @@ const ViewSponsor = () => {
   const [editedSponsor, setEditedSponsor] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   // Fetch sponsors from the backend
   useEffect(() => {
     const fetchSponsors = async () => {
       try {
-        const response = await axios.get("https://api.gkcc.world/api/sponsor/viewsponsors");
-        console.log("Fetched sponsors:", response.data); // Debug the response
-
-        // Extract the sponsor array from the `message` field
+        const response = await axios.get("http://localhost:5001/api/sponsor/viewsponsors");
         const sponsorArray = response.data.message || [];
         if (Array.isArray(sponsorArray)) {
           setSponsors(sponsorArray);
@@ -32,9 +31,27 @@ const ViewSponsor = () => {
     fetchSponsors();
   }, []);
 
+
+  const confirmDelete = (id) => {
+    setDeleteId(id);
+    setShowDeleteModal(true); // Show confirmation modal
+  };
+  // Handle Delete Sponsor
+  const handleDelete = async (id) => {
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(`http://localhost:5001/api/sponsor/deletesponsor/${id}`);
+      setSponsors((prev) => prev.filter((sponsor) => sponsor._id !== id));
+    } catch (err) {
+      console.error("Error deleting sponsor:", err);
+      setError("Failed to delete sponsor");
+    }
+  };
+
   // Handle entering edit mode
   const handleEdit = (sponsor) => {
-    setEditingId(sponsor._id); // Backend uses `_id`
+    setEditingId(sponsor._id);
     setEditedSponsor({ ...sponsor });
   };
 
@@ -44,37 +61,23 @@ const ViewSponsor = () => {
     setEditedSponsor({});
   };
 
-  // Handle field changes
-  const handleChange = (field, value) => {
-    setEditedSponsor((prev) => ({ ...prev, [field]: value }));
-  };
-
-  // Handle file changes
-  const handleFileChange = (field, file) => {
-    setEditedSponsor((prev) => ({ ...prev, [field]: file }));
-  };
-
   // Handle saving edits
   const handleSave = async (id) => {
     try {
-      const url = `https://api.gkcc.world/api/sponsor/editsponsorsdetails/${id}`;
-      console.log("PUT Request URL:", url); // Debug the URL being used
-
+      const url = `http://localhost:5001/api/sponsor/editsponsorsdetails/${id}`;
       const formData = new FormData();
       formData.append("name", editedSponsor.name);
       formData.append("description", editedSponsor.description);
+      formData.append("websitelink", editedSponsor.websitelink);
+      formData.append("brochure", editedSponsor.brochure);
       if (editedSponsor.logo instanceof File) {
         formData.append("logo", editedSponsor.logo);
-      }
-      if (editedSponsor.brochure instanceof File) {
-        formData.append("brochure", editedSponsor.brochure);
       }
 
       const response = await axios.post(url, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log("Update response:", response.data); // Log the response
       setSponsors((prev) =>
         prev.map((sponsor) =>
           sponsor._id === id ? { ...sponsor, ...response.data.data } : sponsor
@@ -86,6 +89,11 @@ const ViewSponsor = () => {
       console.error(err);
       setError("Failed to update sponsor");
     }
+  };
+
+  // Handle field changes
+  const handleChange = (field, value) => {
+    setEditedSponsor((prev) => ({ ...prev, [field]: value }));
   };
 
   if (loading) {
@@ -132,13 +140,14 @@ const ViewSponsor = () => {
                 <input
                   type="file"
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4"
-                  onChange={(e) => handleFileChange("logo", e.target.files[0])}
+                  onChange={(e) => handleChange("logo", e.target.files[0])}
                 />
-                <label className="block text-sm font-medium text-gray-700 mb-1">Upload Brochure</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Brochure URL</label>
                 <input
-                  type="file"
+                  type="url"
+                  value={editedSponsor.brochure || ""}
                   className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4"
-                  onChange={(e) => handleFileChange("brochure", e.target.files[0])}
+                  onChange={(e) => handleChange("brochure", e.target.value)}
                 />
                 <div className="flex gap-2">
                   <button
@@ -176,7 +185,7 @@ const ViewSponsor = () => {
                       rel="noopener noreferrer"
                       className="text-blue-500 underline"
                     >
-                      View
+                      View Brochure
                     </a>
                   ) : (
                     <span className="text-gray-500">No Brochure Available</span>
@@ -191,24 +200,56 @@ const ViewSponsor = () => {
                       rel="noopener noreferrer"
                       className="text-blue-500 underline"
                     >
-                      Visit
+                      Visit Website
                     </a>
                   ) : (
                     <span className="text-gray-500">No Website Available</span>
                   )}
                 </div>
-                <button
-                  className="mt-4 bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600"
-                  onClick={() => handleEdit(sponsor)}
-                >
-                  Edit
-                </button>
+                <div className="mt-4 flex justify-between">
+                  <button
+                    className="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600"
+                    onClick={() => handleEdit(sponsor)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600"
+                    onClick={() => confirmDelete(sponsor._id)}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             )}
           </div>
         ))}
       </div>
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-lg font-bold mb-4">Confirm Deletion</h3>
+            <p>Are you sure you want to delete this sponsor?</p>
+            <div className="mt-6 flex justify-end gap-4">
+              <button
+                className="bg-gray-400 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-500"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600"
+                onClick={handleDelete}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+    
   );
 };
 
