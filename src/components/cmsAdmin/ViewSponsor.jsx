@@ -31,13 +31,10 @@ const ViewSponsor = () => {
     fetchSponsors();
   }, []);
 
-
-  const confirmDelete = (id) => {
-    setDeleteId(id);
-    setShowDeleteModal(true); // Show confirmation modal
-  };
+  
   // Handle Delete Sponsor
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this sponsor?");
     if (!confirmDelete) return;
 
     try {
@@ -215,7 +212,7 @@ const ViewSponsor = () => {
                   </button>
                   <button
                     className="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600"
-                    onClick={() => confirmDelete(sponsor._id)}
+                    onClick={() => handleDelete(sponsor._id)}
                   >
                     Delete
                   </button>
@@ -225,31 +222,7 @@ const ViewSponsor = () => {
           </div>
         ))}
       </div>
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h3 className="text-lg font-bold mb-4">Confirm Deletion</h3>
-            <p>Are you sure you want to delete this sponsor?</p>
-            <div className="mt-6 flex justify-end gap-4">
-              <button
-                className="bg-gray-400 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-500"
-                onClick={() => setShowDeleteModal(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600"
-                onClick={handleDelete}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
-    
   );
 };
 
