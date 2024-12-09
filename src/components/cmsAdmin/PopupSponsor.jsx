@@ -7,13 +7,14 @@ const PopupSponsor = () => {
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [error, setError] = useState(''); // Error messages
   const [successMessage, setSuccessMessage] = useState(''); // Success messages
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility state
+  const [imageToDelete, setImageToDelete] = useState(null); // Image to delete
 
   // Fetch the existing image from the backend
   const fetchImage = async () => {
     try {
       setIsLoading(true);
       const response = await axios.get('http://localhost:5001/api/sponsor/viewpopup');
-      console.log('Fetched image:', response.data.data); // Debug the response
       setImage(response.data.data || null);
       setError('');
     } catch (err) {
@@ -28,7 +29,6 @@ const PopupSponsor = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      console.log('Selected image:', file);
       setSelectedImage(file);
       setError('');
     } else {
@@ -48,20 +48,20 @@ const PopupSponsor = () => {
 
     try {
       setIsLoading(true);
-      console.log('Uploading image:', selectedImage);
       const response = await axios.post('http://localhost:5001/api/sponsor/addpopupimage', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log('Upload response:', response.data);
-      setSuccessMessage('Image uploaded successfully!');
-      setSelectedImage(null);
 
-      // Fetch the updated image directly after successful upload
-      await fetchImage();
+      const uploadedImage = response.data.data;
+      if (uploadedImage) {
+        setSuccessMessage('Image uploaded successfully!');
+        setSelectedImage(null);
+        setImage(uploadedImage);
+        window.location.reload(); 
+      }
     } catch (err) {
-      console.error('Failed to upload image:', err.response || err.message);
       setError('Failed to upload the image. Please try again.');
     } finally {
       setIsLoading(false);
@@ -70,25 +70,22 @@ const PopupSponsor = () => {
 
   // Handle image deletion
   const handleDelete = async () => {
-    if (!image || !image._id) {
+    if (!imageToDelete) {
       setError('No image to delete.');
       return;
     }
 
-    const confirmDelete = window.confirm('Are you sure you want to delete this image?');
-    if (!confirmDelete) return;
-
     try {
       setIsLoading(true);
-      console.log('Deleting image with ID:', image._id);
-      await axios.delete(`http://localhost:5001/api/sponsor/deletepopup/${image._id}`);
+      await axios.delete(`http://localhost:5001/api/sponsor/deletepopup/${imageToDelete._id}`);
       setSuccessMessage('Image deleted successfully!');
-      setImage(null); // Clear the displayed image
+      setImage(null);
+      setImageToDelete(null); // Clear image to delete
     } catch (err) {
-      console.error('Failed to delete image:', err.response || err.message);
       setError('Failed to delete the image. Please try again.');
     } finally {
       setIsLoading(false);
+      setIsModalOpen(false); // Close the modal after action
     }
   };
 
@@ -96,6 +93,17 @@ const PopupSponsor = () => {
   useEffect(() => {
     fetchImage();
   }, []);
+
+  // Open the delete confirmation modal
+  const openModal = (image) => {
+    setImageToDelete(image); // Set the image to be deleted
+    setIsModalOpen(true);
+  };
+
+  // Close the modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
 
   return (
     <div className="p-6">
@@ -111,36 +119,12 @@ const PopupSponsor = () => {
         />
         <button
           onClick={handleSubmit}
-          className={`bg-blue-500 text-white py-2 px-4 rounded-lg ml-4 hover:bg-blue-600 
+          className={`bg-blue-500 text-white py-2 px-4 rounded-lg ml-4 hover:bg-blue-600 ${
+            isLoading ? 'cursor-not-allowed opacity-50' : ''
           }`}
+          disabled={isLoading}
         >
-          {isLoading ? (
-            <span className="flex items-center">
-              <svg
-                className="animate-spin h-5 w-5 mr-2"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                ></path>
-              </svg>
-              Uploading...
-            </span>
-          ) : (
-            'Upload'
-          )}
+          {isLoading ? 'Uploading...' : 'Upload'}
         </button>
       </div>
 
@@ -157,14 +141,40 @@ const PopupSponsor = () => {
             className="w-full h-auto rounded-lg mx-auto"
           />
           <button
-            onClick={handleDelete}
+            onClick={() => openModal(image)}
             className="mt-4 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600"
           >
             Delete
           </button>
         </div>
       ) : (
-        <div className="text-center text-gray-500">No image uploaded yet.</div>
+        <div className="text-center text-gray-500">
+          {image === null ? "No image uploaded yet." : null}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 flex justify-center items-center bg-gray-800 bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h3 className="text-lg font-bold text-center">Confirm Deletion</h3>
+            <p className="text-center mb-4">Are you sure you want to delete this image?</p>
+            <div className="flex justify-between">
+              <button
+                onClick={handleDelete}
+                className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600"
+              >
+                Yes, Delete
+              </button>
+              <button
+                onClick={closeModal}
+                className="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
