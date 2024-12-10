@@ -11,6 +11,7 @@ const EditNewsletter = () => {
     para2: "",
     img1: null,
     img2: null,
+    date: "", // Changed publishDate to date
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" }); // For notifications
@@ -20,7 +21,7 @@ const EditNewsletter = () => {
     const fetchNewsletters = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5001/api/newsletter/view"
+          "https://api.gkcc.world/api/newsletter/view"
         );
         setNewsletters(response.data.data); // Assuming the API returns newsletters in `data.data`
       } catch (error) {
@@ -49,6 +50,7 @@ const EditNewsletter = () => {
         para2: newsletter.secondpara,
         img1: null, // Reset to null for file input
         img2: null,
+        date: newsletter.date || "", // Set the existing date value if available
       });
     }
   };
@@ -79,10 +81,11 @@ const EditNewsletter = () => {
     form.append("secondpara", formData.para2);
     if (formData.img1) form.append("firstimage", formData.img1);
     if (formData.img2) form.append("secondimage", formData.img2);
+    form.append("date", formData.date); // Include the date in the form data
 
     try {
       const response = await axios.put(
-        `http://localhost:5001/api/newsletter/edit/${selectedNewsletter._id}`,
+        `https://api.gkcc.world/api/newsletter/edit/${selectedNewsletter._id}`,
         form,
         {
           headers: {
@@ -121,7 +124,7 @@ const EditNewsletter = () => {
 
     try {
       const response = await axios.delete(
-        `http://localhost:5001/api/newsletter/delete/${selectedNewsletter._id}`
+        `https://api.gkcc.world/api/newsletter/delete/${selectedNewsletter._id}`
       );
 
       if (response.status === 200) {
@@ -139,6 +142,7 @@ const EditNewsletter = () => {
           para2: "",
           img1: null,
           img2: null,
+          date: "", // Reset date field
         });
       }
     } catch (error) {
@@ -303,6 +307,22 @@ const EditNewsletter = () => {
               onChange={handleFileChange}
               className="w-full border border-gray-300 rounded px-4 py-2 focus:ring focus:ring-blue-500"
               accept="image/*"
+            />
+          </div>
+
+          {/* Date */}
+          <div className="mb-4">
+            <label htmlFor="date" className="block text-gray-700 font-medium mb-2">
+              Date
+            </label>
+            <input
+              type="date"
+              id="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded px-4 py-2 focus:ring focus:ring-blue-500"
+              required
             />
           </div>
 

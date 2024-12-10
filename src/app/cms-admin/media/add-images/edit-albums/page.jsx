@@ -14,6 +14,7 @@ const page = () => {
   <AlbumsOption/>
  </div>
  </div>
+ 
   )
 }
 

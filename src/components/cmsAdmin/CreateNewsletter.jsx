@@ -9,10 +9,11 @@ const CreateNewsletter = () => {
     secondpara: '',
     firstimage: null,
     secondimage: null,
+    date: '', // Added publish date field
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [alert, setAlert] = useState({ type: '', message: '' }); // State for custom alert
+  const [alert, setAlert] = useState({ type: '', message: '' });
 
   // Handle text input changes
   const handleChange = (e) => {
@@ -39,10 +40,11 @@ const CreateNewsletter = () => {
     form.append('secondpara', formData.secondpara);
     form.append('firstimage', formData.firstimage);
     form.append('secondimage', formData.secondimage);
+    form.append('date', formData.date); // Append the publish date
 
     try {
       const response = await axios.post(
-        'http://localhost:5001/api/newsletter/add',
+        'https://api.gkcc.world/api/newsletter/add',
         form,
         {
           headers: {
@@ -60,6 +62,7 @@ const CreateNewsletter = () => {
           secondpara: '',
           firstimage: null,
           secondimage: null,
+          date: '', // Reset the publish date
         });
       } else {
         setAlert({
@@ -226,6 +229,25 @@ const CreateNewsletter = () => {
             onChange={handleFileChange}
             className="w-full border border-gray-300 rounded px-4 py-2 focus:ring focus:ring-blue-500"
             accept="image/*"
+            required
+          />
+        </div>
+
+        {/* Publish Date */}
+        <div className="mb-4">
+          <label
+            htmlFor="date"
+            className="block text-gray-700 font-medium mb-2"
+          >
+            Publish Date <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            id="date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:ring focus:ring-blue-500"
             required
           />
         </div>
