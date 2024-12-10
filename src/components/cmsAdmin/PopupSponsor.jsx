@@ -14,7 +14,8 @@ const PopupSponsor = () => {
   const fetchImage = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get('http://localhost:5001/api/sponsor/viewpopup');
+
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API}/sponsor/viewpopup`);
       setImage(response.data.data || null);
       setError('');
     } catch (err) {
@@ -48,7 +49,7 @@ const PopupSponsor = () => {
 
     try {
       setIsLoading(true);
-      const response = await axios.post('http://localhost:5001/api/sponsor/addpopupimage', formData, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_API}/sponsor/addpopupimage`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -77,7 +78,7 @@ const PopupSponsor = () => {
 
     try {
       setIsLoading(true);
-      await axios.delete(`http://localhost:5001/api/sponsor/deletepopup/${imageToDelete._id}`);
+      await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_API}/sponsor/deletepopup/${imageToDelete._id}`);
       setSuccessMessage('Image deleted successfully!');
       setImage(null);
       setImageToDelete(null); // Clear image to delete

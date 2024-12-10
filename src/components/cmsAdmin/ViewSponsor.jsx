@@ -14,7 +14,7 @@ const ViewSponsor = () => {
   useEffect(() => {
     const fetchSponsors = async () => {
       try {
-        const response = await axios.get("http://localhost:5001/api/sponsor/viewsponsors");
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_API}/sponsor/viewsponsors`);
         const sponsorArray = response.data.message || [];
         if (Array.isArray(sponsorArray)) {
           setSponsors(sponsorArray);
@@ -38,7 +38,7 @@ const ViewSponsor = () => {
     if (!confirmDelete) return;
 
     try {
-      await axios.delete(`http://localhost:5001/api/sponsor/deletesponsor/${id}`);
+      await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_API}/sponsor/deletesponsor/${id}`);
       setSponsors((prev) => prev.filter((sponsor) => sponsor._id !== id));
     } catch (err) {
       console.error("Error deleting sponsor:", err);
@@ -61,7 +61,7 @@ const ViewSponsor = () => {
   // Handle saving edits
   const handleSave = async (id) => {
     try {
-      const url = `http://localhost:5001/api/sponsor/editsponsorsdetails/${id}`;
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_API}/sponsor/editsponsorsdetails/${id}`;
       const formData = new FormData();
       formData.append("name", editedSponsor.name);
       formData.append("description", editedSponsor.description);

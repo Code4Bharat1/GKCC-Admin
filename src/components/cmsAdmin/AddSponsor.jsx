@@ -75,7 +75,7 @@ const AddSponsor = () => {
     console.log('Submitting data:', Object.fromEntries(data.entries())); // Logs the payload for debugging
 
     try {
-      const response = await axios.post('http://localhost:5001/api/sponsor/addSponsor', data, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_API}/sponsor/addSponsor`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
