@@ -42,12 +42,6 @@ const SABanner = () => {
           `${process.env.NEXT_PUBLIC_BACKEND_API}/association/getAssociationcount`
         ),
       ]);
-      console.log(
-        memberCountResponse,
-        pendingMemberCountResponse,
-        vendorCountResponse,
-        associationCountResponse
-      );
 
       // Assuming each response has a 'count' field
       setData({

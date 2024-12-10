@@ -14,7 +14,6 @@ const SAMemberList = () => {
 
     const fetchMembers = async () => {
       const token = localStorage.getItem("token");
-      // console.log(token);
       
       if (!token) {
         setError("No token found");

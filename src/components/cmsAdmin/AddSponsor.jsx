@@ -72,7 +72,6 @@ const AddSponsor = () => {
     
     data.append('websitelink', formData.websitelink);
 
-    console.log('Submitting data:', Object.fromEntries(data.entries())); // Logs the payload for debugging
 
     try {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_API}/sponsor/addSponsor`, data, {
@@ -80,7 +79,6 @@ const AddSponsor = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log('Response:', response.data);
       setSuccessMessage('Sponsor added successfully!');
     } catch (error) {
       setSubmissionError('Failed to add sponsor. Please try again.');

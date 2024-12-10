@@ -73,8 +73,6 @@ const AddImages = () => {
     setIsFetching(true); // Start fetching
     try {
       const response = await axios.get('https://api.gkcc.world/api/photomedia/viewphotosofmediapage');
-      console.log('Fetched Submitted Images Response:', response);
-      console.log('Fetched Submitted Images Data:', response.data);
 
       // Extract images from the 'message' array
       if (response.data && Array.isArray(response.data.message)) {
@@ -189,8 +187,6 @@ const AddImages = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log('Response:', response);
-      console.log('Response Data:', response.data);
 
       // Validate response
       if (!response || !response.data) {
@@ -326,7 +322,6 @@ const AddImages = () => {
           </div>
         ) : Array.isArray(submittedImages) && submittedImages.length > 0 ? (
           submittedImages.map((image, index) => {
-            console.log('Rendering image:', image);
 
             // Determine the correct URL property
             const imageUrl = image.url || image.imageUrl || image.src || (image.data && image.data.url) || '';

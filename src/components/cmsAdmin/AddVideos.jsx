@@ -79,10 +79,8 @@ const AddVideos = () => {
     setIsFetching(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/viewvideosofmediapage`);
-      console.log('Fetched Videos:', response.data); // Debugging line
       if (response.data && Array.isArray(response.data.message)) {
         setSubmittedVideos(response.data.message);
-        console.log('Submitted Videos:', response.data.message); // Verify structure
       } else {
         // Handle unexpected response structure
         console.error('Unexpected response structure:', response.data);
@@ -125,10 +123,8 @@ const AddVideos = () => {
     setIsSubmitting(true);
 
     try {
-      console.log('Submitting URL:', url);
       // **Send { url } instead of { videoLink: url }**
       const response = await axios.post(`${API_BASE_URL}/addvideosofmediapage`, { url });
-      console.log('Video Added:', response.data); // Debugging line
 
       // Assuming the backend returns the created video object in `message`
       setSubmittedVideos([response.data.message, ...submittedVideos]); // Prepend the new video
@@ -136,7 +132,6 @@ const AddVideos = () => {
       setUrl('');
     } catch (error) {
       console.error('Error submitting video:', error);
-      console.log('Error Response:', error.response); // Debugging line
       if (error.response && error.response.data && error.response.data.message) {
         setErrorMessage(error.response.data.message);
       } else {
