@@ -4,6 +4,7 @@ import { FcCollaboration } from "react-icons/fc";
 import { FaSignOutAlt } from "react-icons/fa"
 import { MdPermMedia } from "react-icons/md";
 import { useRouter } from 'next/navigation'; 
+import { IoNewspaperOutline } from "react-icons/io5";
 
 
 const CmsAdminSidebar = () => {
@@ -13,15 +14,15 @@ const CmsAdminSidebar = () => {
     router.push('/cms-admin'); // Update this to the correct landing page
   };
 
-  const handleMemberListClick = () => {
+  const handleMedia = () => {
     router.push('/cms-admin/media'); 
   };  
 
-  const handleVendorsClick = () => {
-    router.push('/vendors'); 
+  const handleNewsletter = () => {
+    router.push('/cms-admin/newsletter'); 
   };  
 
-  const handleAssociationClick = () => {
+  const handleSponsors = () => {
     router.push('/cms-admin/sponsors'); 
   };
 
@@ -48,19 +49,19 @@ const CmsAdminSidebar = () => {
         />
       </div>
       
-      <div className="flex items-center mt-8 mb-6 cursor-pointer backdrop-blur-md bg-white text-black  p-3 rounded hover:bg-blue-800 transition" onClick={handleAssociationClick}> 
+      <div className="flex items-center mt-8 mb-6 cursor-pointer backdrop-blur-md bg-white text-black  p-3 rounded hover:bg-blue-800 transition" onClick={handleSponsors}> 
         <FcCollaboration className="text-2xl" />
         <span className="ml-4 sm:ml-8">Sponsors</span>
       </div>
       
-      <div className="flex items-center mb-6 cursor-pointer backdrop-blur-md bg-white text-black p-3 rounded hover:bg-blue-800 transition" onClick={handleMemberListClick}> 
+      <div className="flex items-center mb-6 cursor-pointer backdrop-blur-md bg-white text-black p-3 rounded hover:bg-blue-800 transition" onClick={handleMedia}> 
         <MdPermMedia className="text-2xl" />
         <span className="ml-4 sm:ml-8">Media</span>
       </div>
 
-      <div className="flex items-center mb-6 cursor-pointer backdrop-blur-md bg-white text-black p-3 rounded hover:bg-blue-800 transition" onClick={handleVendorsClick}> 
-        {/* <FaUsers className="text-2xl" /> */}
-        <span className="ml-4 sm:ml-8">Vendors</span>
+      <div className="flex items-center mb-6 cursor-pointer backdrop-blur-md bg-white text-black p-3 rounded hover:bg-blue-800 transition" onClick={handleNewsletter}> 
+        <IoNewspaperOutline className="text-2xl" />
+        <span className="ml-4 sm:ml-8">Newsletter</span>
       </div>
       
       
