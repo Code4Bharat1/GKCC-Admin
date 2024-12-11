@@ -1,6 +1,6 @@
 "use client"
 import React from 'react'
-import CmsAdminSidebar from '@/components/cmsAdmin/CmsAdminSidebar';
+import CmsAdminSidebar from '../../../../components/cmsAdmin/CmsAdminSidebar';
 import CmsAdminHeader from '@/components/cmsAdmin/CmsAdminHeader';
 import MediaOptions from '@/components/cmsAdmin/MediaOptions';
 import VideoAlbumsOption from '@/components/cmsAdmin/VideoAlbumsOption';

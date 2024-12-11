@@ -1,9 +1,9 @@
 "use client"
 import React from 'react'
-import CmsAdminSidebar from '@/components/cmsAdmin/CmsAdminSidebar';
-import CmsAdminHeader from '@/components/cmsAdmin/CmsAdminHeader';
-import MediaOptions from '@/components/cmsAdmin/MediaOptions';
-import AlbumsOption from '@/components/cmsAdmin/AlbumsOption';
+import CmsAdminSidebar from '../../../../components/cmsAdmin/CmsAdminSidebar';
+import CmsAdminHeader from '../../../../components/cmsAdmin/CmsAdminHeader';
+import MediaOptions from '../../../../components/cmsAdmin/MediaOptions';
+import AlbumsOption from '../../../../components/cmsAdmin/AlbumsOption';
 const page = () => {
   return (
 <div className="flex bg-white min-h-screen">
