@@ -1,1 +1,25 @@
- 
+{
+    "compilerOptions": {
+      "baseUrl": "./", // Base directory for imports
+      "paths": {
+        "@/*": ["src/*"] // Alias for easier imports, e.g., "@/components" -> "src/components"
+      },
+      "allowJs": true, // Allow JavaScript files in the project
+      "jsx": "preserve", // For React JSX files, use "react-jsx" for React 17+
+      "module": "esnext", // Use ESNext module syntax
+      "moduleResolution": "node", // Resolve modules the Node.js way
+      "strict": false, // Disable strict type checking
+      "esModuleInterop": true, // Enable compatibility with CommonJS modules
+      "resolveJsonModule": true // Allow importing JSON modules
+    },
+    "include": [
+      "src/**/*", // Include all files in the "src" directory
+      ".next/types/**/*.ts" // Ensure compatibility with Next.js type declarations (even in JS projects)
+    ],
+    "exclude": [
+      "node_modules", // Exclude dependencies
+      "**/*.ts", // Exclude TypeScript files (if any)
+      "**/*.d.ts" // Exclude TypeScript declaration files
+    ]
+  }
+  
