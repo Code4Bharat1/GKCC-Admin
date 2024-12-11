@@ -8,10 +8,10 @@ const AlbumsOption = () => {
   const router = useRouter();
 
   const handleCreateAlbum = () => {
-      router.push('/cms-admin/media/add-images/create-albums');
+      router.push('/cms-admin/media/create-albums');
   };
   const handleEditAlbum = () => {
-      router.push('/cms-admin/media/add-images/edit-albums');
+      router.push('/cms-admin/media/edit-albums');
   };
   
 return (

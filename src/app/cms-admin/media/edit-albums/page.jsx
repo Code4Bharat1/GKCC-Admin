@@ -4,6 +4,7 @@ import CmsAdminSidebar from '@/components/cmsAdmin/CmsAdminSidebar';
 import CmsAdminHeader from '@/components/cmsAdmin/CmsAdminHeader';
 import MediaOptions from '@/components/cmsAdmin/MediaOptions';
 import AlbumsOption from '@/components/cmsAdmin/AlbumsOption';
+import EditAlbums from '@/components/cmsAdmin/EditAlbums';
 const page = () => {
   return (
 <div className="flex bg-white min-h-screen">
@@ -12,6 +13,7 @@ const page = () => {
   <CmsAdminHeader/>
   <MediaOptions/>
   <AlbumsOption/>
+  <EditAlbums/>
  </div>
  </div>
  
