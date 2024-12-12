@@ -151,7 +151,7 @@ const LoginPage = () => {
 
       {/* Bottom Text */}
       <p className="text-4xl font-semibold mt-8 bg-gradient-to-r from-purple-600 to-blue-600 text-transparent bg-clip-text font-jakarta text-center">
-        A Shared Vision By The Kokanis&apos; For the Kokanis
+        A Shared Vision by the Kokanis , for the Kokanis
       </p>
     </div>
   );
