@@ -1,123 +1,155 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const EditVideosAlbums = () => {
   const [albums, setAlbums] = useState([]); // List of albums
   const [selectedAlbum, setSelectedAlbum] = useState(null); // Currently selected album
-  const [albumName, setAlbumName] = useState(''); // Editable album name
+  const [albumName, setAlbumName] = useState(""); // Editable album name
   const [videos, setVideos] = useState([]); // Videos in the selected album
   const [errorMessage, setErrorMessage] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [deleteModal, setDeleteModal] = useState({ open: false, videoId: null }); // For custom delete confirmation
 
+  // Fetch albums on component mount
   useEffect(() => {
     fetchAlbums();
   }, []);
 
+  // Fetch all albums
   const fetchAlbums = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/video-albums'); // Replace with your API endpoint
-      setAlbums(response.data);
+      const response = await axios.get(" https://api.gkcc.world/api/Videomedia/viewalbum");
+      const albumsData = response.data?.message || [];
+      setAlbums(Array.isArray(albumsData) ? albumsData : []);
     } catch (error) {
-      console.error('Error fetching albums:', error);
-      setErrorMessage('Failed to fetch albums. Please try again.');
+      setErrorMessage("Failed to fetch albums. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Handle album selection
   const handleAlbumSelect = (e) => {
-    const albumId = parseInt(e.target.value);
-    const album = albums.find((a) => a.id === albumId);
+    const albumId = e.target.value;
+    const album = albums.find((a) => a._id === albumId);
     setSelectedAlbum(album);
-    setAlbumName(album?.name || '');
-    setVideos(album?.videos || []);
+    setAlbumName(album?.nameofalbum || "");
+    setVideos(
+      album?.videosdetails?.map((video) => ({
+        ...video,
+        videoId: extractYouTubeVideoId(video.url),
+      })) || []
+    );
     setErrorMessage(null);
     setSuccessMessage(null);
   };
 
+  // Update album name
   const handleAlbumNameChange = (e) => {
     setAlbumName(e.target.value);
   };
 
+  // Extract YouTube video ID from URL
   const extractYouTubeVideoId = (link) => {
-    const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const regex =
+      /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const match = link.match(regex);
     return match ? match[1] : null;
   };
 
+  // Add a video to the album
   const handleVideoAdd = async (url) => {
-    if (videos.length >= 20) {
-      setErrorMessage('You can only add up to 20 videos.');
+    if (!selectedAlbum) {
+      setErrorMessage("Please select an album first.");
       return;
     }
 
     const videoId = extractYouTubeVideoId(url);
     if (!videoId) {
-      setErrorMessage('Invalid YouTube video link.');
-      return;
-    }
-
-    if (videos.some((video) => video.videoId === videoId)) {
-      setErrorMessage('This video is already in the album.');
+      setErrorMessage("Invalid YouTube video link.");
       return;
     }
 
     try {
       setLoading(true);
-      const response = await axios.post(`/api/video-albums/${selectedAlbum.id}/videos`, {
-        videoId,
-        url,
-      }); // Replace with your API endpoint
-      setVideos([...videos, response.data]);
-      setErrorMessage(null);
-      setSuccessMessage('Video added successfully.');
+      const response = await axios.put(
+        ` https://api.gkcc.world/api/Videomedia/addvideo/${selectedAlbum._id}`,
+        { url, videoId }
+      );
+      const updatedVideos = response.data.data?.videosdetails || [];
+      setVideos(
+        updatedVideos.map((video) => ({
+          ...video,
+          videoId: extractYouTubeVideoId(video.url),
+        }))
+      );
+      setSelectedAlbum((prev) => ({
+        ...prev,
+        videosdetails: updatedVideos,
+      }));
+      setSuccessMessage("Video added successfully!");
     } catch (error) {
-      console.error('Error adding video:', error);
-      setErrorMessage('Failed to add video. Please try again.');
+      setErrorMessage("Failed to add video. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVideoDelete = async (videoId) => {
+  // Delete a video from the album
+  const handleVideoDelete = async () => {
+    if (!deleteModal.videoId || !selectedAlbum) return;
+
     try {
       setLoading(true);
-      await axios.delete(`/api/video-albums/${selectedAlbum.id}/videos/${videoId}`); // Replace with your API endpoint
-      setVideos(videos.filter((video) => video.videoId !== videoId));
-      setSuccessMessage('Video removed successfully.');
+      const response = await axios.delete(
+        ` https://api.gkcc.world/api/Videomedia/deletevideo/${selectedAlbum._id}/${deleteModal.videoId}`
+      );
+      const updatedVideos = response.data.data?.videosdetails || [];
+      setVideos(
+        updatedVideos.map((video) => ({
+          ...video,
+          videoId: extractYouTubeVideoId(video.url),
+        }))
+      );
+      setSelectedAlbum((prev) => ({
+        ...prev,
+        videosdetails: updatedVideos,
+      }));
+      setSuccessMessage("Video removed successfully.");
     } catch (error) {
-      console.error('Error deleting video:', error);
-      setErrorMessage('Failed to delete video. Please try again.');
+      setErrorMessage("Failed to delete video. Please try again.");
     } finally {
+      setDeleteModal({ open: false, videoId: null });
       setLoading(false);
     }
   };
 
+  // Save changes to the album (e.g., update the album name)
   const handleSubmit = async () => {
     if (!selectedAlbum) {
-      setErrorMessage('Please select an album.');
+      setErrorMessage("Please select an album.");
       return;
     }
 
     if (!albumName) {
-      setErrorMessage('Album name cannot be empty.');
+      setErrorMessage("Album name cannot be empty.");
       return;
     }
 
     try {
       setLoading(true);
-      await axios.put(`/api/video-albums/${selectedAlbum.id}`, {
-        name: albumName,
-      }); // Replace with your API endpoint
-      setSuccessMessage('Album updated successfully.');
+      await axios.put(` https://api.gkcc.world/api/Videomedia/editalbum/${selectedAlbum._id}`, {
+        nameofalbum: albumName,
+      });
+      setSuccessMessage("Album updated successfully.");
       fetchAlbums(); // Refresh albums after update
     } catch (error) {
-      console.error('Error updating album:', error);
-      setErrorMessage('Failed to update album. Please try again.');
+      setErrorMessage("Failed to update album. Please try again.");
     } finally {
       setLoading(false);
+      window.location.reload();
     }
   };
 
@@ -134,14 +166,14 @@ const EditVideosAlbums = () => {
           id="selectAlbum"
           className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           onChange={handleAlbumSelect}
-          value={selectedAlbum?.id || ''}
+          value={selectedAlbum?._id || ""}
         >
           <option value="" disabled>
             -- Select an album --
           </option>
           {albums.map((album) => (
-            <option key={album.id} value={album.id}>
-              {album.name}
+            <option key={album._id} value={album._id}>
+              {album.nameofalbum}
             </option>
           ))}
         </select>
@@ -171,19 +203,19 @@ const EditVideosAlbums = () => {
               placeholder="Enter YouTube video link"
               className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   handleVideoAdd(e.target.value);
-                  e.target.value = '';
+                  e.target.value = "";
                 }
               }}
             />
-            <p className="text-sm text-gray-500 mt-2">Press Enter to add a video. Maximum 20 videos.</p>
+            <p className="text-sm text-gray-500 mt-2">
+              Press Enter to add a video. Maximum 20 videos.
+            </p>
           </div>
 
-          {/* Error Message */}
+          {/* Messages */}
           {errorMessage && <p className="text-red-500 text-sm mb-4">{errorMessage}</p>}
-
-          {/* Success Message */}
           {successMessage && <p className="text-green-500 text-sm mb-4">{successMessage}</p>}
 
           {/* Videos List */}
@@ -191,7 +223,7 @@ const EditVideosAlbums = () => {
           <div className="flex flex-col gap-4">
             {videos.map((video) => (
               <div
-                key={video.id}
+                key={video._id}
                 className="w-full flex items-center bg-gray-100 border border-gray-300 rounded-lg p-4"
               >
                 <img
@@ -209,7 +241,7 @@ const EditVideosAlbums = () => {
                     Watch Video
                   </a>
                   <button
-                    onClick={() => handleVideoDelete(video.videoId)}
+                    onClick={() => setDeleteModal({ open: true, videoId: video._id })}
                     className="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 transition self-start"
                   >
                     Delete
@@ -219,17 +251,41 @@ const EditVideosAlbums = () => {
             ))}
           </div>
 
-          {/* Submit Button */}
+          {/* Save Changes Button */}
           <button
             onClick={handleSubmit}
             className={`w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition mt-6 ${
-              loading ? 'opacity-50 cursor-not-allowed' : ''
+              loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
             disabled={loading}
           >
-            {loading ? 'Saving...' : 'Save Changes'}
+            {loading ? "Saving..." : "Save Changes"}
           </button>
         </>
+      )}
+
+      {/* Custom Delete Confirmation Modal */}
+      {deleteModal.open && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-md w-80">
+            <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
+            <p className="mb-4">Are you sure you want to delete this video?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                onClick={() => setDeleteModal({ open: false, videoId: null })}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                onClick={handleVideoDelete}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
