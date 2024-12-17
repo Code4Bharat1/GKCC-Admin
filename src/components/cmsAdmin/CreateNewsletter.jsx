@@ -6,21 +6,18 @@ const CreateNewsletter = () => {
     title: '',
     heading: '',
     date: '',
-    sections: [], // Array to hold sections dynamically
   });
 
-  const [numSections, setNumSections] = useState(0); // Number of sections
-  const [sectionData, setSectionData] = useState([]); // To manage individual section data
+  const [numSections, setNumSections] = useState(0);
+  const [sectionData, setSectionData] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alert, setAlert] = useState({ type: '', message: '' });
 
-  // Handle text input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle number of sections
   const handleNumSectionsChange = (e) => {
     const count = parseInt(e.target.value, 10);
     if (count <= 10) {
@@ -33,63 +30,65 @@ const CreateNewsletter = () => {
     }
   };
 
-  // Handle Section Type Change
   const handleSectionTypeChange = (index, value) => {
     const updatedSections = [...sectionData];
     updatedSections[index].type = value;
     setSectionData(updatedSections);
   };
 
-  // Handle Paragraph Input
   const handleContentChange = (index, value) => {
     const updatedSections = [...sectionData];
     updatedSections[index].content = value;
     setSectionData(updatedSections);
   };
 
-  // Handle Image Upload
   const handleImageChange = (index, file) => {
     const updatedSections = [...sectionData];
     updatedSections[index].image = file;
     setSectionData(updatedSections);
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-
+  
     const form = new FormData();
     form.append('title', formData.title);
     form.append('heading', formData.heading);
     form.append('date', formData.date);
-    form.append('sections', JSON.stringify(sectionData));
-
+  
+    // Ensure section data is appended properly
+    const processedSectionData = sectionData.map((section) => ({
+      text: section.content || '', // Ensure content is always included, even if empty
+      photo: section.image ? section.image.name : '', // Only add image name if it exists
+    }));
+  
+    form.append('section', JSON.stringify(processedSectionData));
+  
     sectionData.forEach((section, index) => {
       if (section.image) {
-        form.append(`photo${index}`, section.image); // Consistent naming
+        form.append(`photo${index}`, section.image);
       }
     });
-
+  
     try {
       const response = await axios.post(
-        ' http://localhost:5001/api/newsletter/add',
+        ' https://api.gkcc.world/api/newsletter/add',
         form,
         {
           headers: { 'Content-Type': 'multipart/form-data' },
         }
       );
-
+  
       if (response.status === 200) {
         setAlert({ type: 'success', message: 'Newsletter created successfully!' });
-        setFormData({ title: '', heading: '', date: '', sections: [] });
+        setFormData({ title: '', heading: '', date: '' });
         setNumSections(0);
         setSectionData([]);
       } else {
         setAlert({ type: 'error', message: 'Failed to create the newsletter.' });
       }
     } catch (error) {
-      console.error(error);
       setAlert({
         type: 'error',
         message: error.response?.data?.message || 'An unexpected error occurred.',
@@ -98,7 +97,7 @@ const CreateNewsletter = () => {
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     <div className="w-full max-w-2xl mx-auto bg-white border border-gray-300 rounded-lg p-6 shadow-xl">
       <h2 className="text-center text-3xl font-semibold text-blue-500 mb-4">Create Newsletter</h2>
@@ -144,17 +143,51 @@ const CreateNewsletter = () => {
           <div key={index} className="mb-4 border-t pt-4">
             <h3 className="text-lg">Section {index + 1}</h3>
             <label className="block text-gray-700 mb-2">Type</label>
-            <select value={section.type} onChange={(e) => handleSectionTypeChange(index, e.target.value)} className="w-full border px-4 py-2 mb-4">
+            <select
+              value={section.type}
+              onChange={(e) => handleSectionTypeChange(index, e.target.value)}
+              className="w-full border px-4 py-2 mb-4"
+            >
               <option value="">-- Select --</option>
               <option value="paragraph">Paragraph</option>
               <option value="image">Image</option>
               <option value="both">Both</option>
             </select>
+
+            {/* Conditional Rendering based on type */}
             {section.type.includes('paragraph') && (
-              <textarea placeholder="Enter paragraph" value={section.content} onChange={(e) => handleContentChange(index, e.target.value)} rows="3" className="w-full border px-4 py-2 mb-4"></textarea>
+              <textarea
+                placeholder="Enter paragraph"
+                value={section.content}
+                onChange={(e) => handleContentChange(index, e.target.value)}
+                rows="3"
+                className="w-full border px-4 py-2 mb-4"
+              />
             )}
             {section.type.includes('image') && (
-              <input type="file" accept="image/*" onChange={(e) => handleImageChange(index, e.target.files[0])} className="w-full border px-4 py-2" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleImageChange(index, e.target.files[0])}
+                className="w-full border px-4 py-2"
+              />
+            )}
+            {section.type.includes('both') && (
+              <>
+                <textarea
+                  placeholder="Enter paragraph"
+                  value={section.content}
+                  onChange={(e) => handleContentChange(index, e.target.value)}
+                  rows="3"
+                  className="w-full border px-4 py-2 mb-4"
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleImageChange(index, e.target.files[0])}
+                  className="w-full border px-4 py-2"
+                />
+              </>
             )}
           </div>
         ))}
