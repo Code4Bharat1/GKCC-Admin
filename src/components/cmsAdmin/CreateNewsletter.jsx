@@ -5,13 +5,12 @@ const CreateNewsletter = () => {
   const [formData, setFormData] = useState({
     title: '',
     heading: '',
-    firstpara: '',
-    secondpara: '',
-    firstimage: null,
-    secondimage: null,
-    date: '', // Added publish date field
+    date: '',
+    sections: [], // Array to hold sections dynamically
   });
 
+  const [numSections, setNumSections] = useState(0); // Number of sections
+  const [sectionData, setSectionData] = useState([]); // To manage individual section data
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alert, setAlert] = useState({ type: '', message: '' });
 
@@ -21,11 +20,38 @@ const CreateNewsletter = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle file input changes
-  const handleFileChange = (e) => {
-    const { name } = e.target;
-    const file = e.target.files[0];
-    setFormData({ ...formData, [name]: file });
+  // Handle number of sections
+  const handleNumSectionsChange = (e) => {
+    const count = parseInt(e.target.value, 10);
+    if (count <= 10) {
+      setNumSections(count);
+      setSectionData(
+        Array.from({ length: count }, () => ({ type: '', content: '', image: null }))
+      );
+    } else {
+      setAlert({ type: 'error', message: 'You can select up to 10 sections.' });
+    }
+  };
+
+  // Handle Section Type Change
+  const handleSectionTypeChange = (index, value) => {
+    const updatedSections = [...sectionData];
+    updatedSections[index].type = value;
+    setSectionData(updatedSections);
+  };
+
+  // Handle Paragraph Input
+  const handleContentChange = (index, value) => {
+    const updatedSections = [...sectionData];
+    updatedSections[index].content = value;
+    setSectionData(updatedSections);
+  };
+
+  // Handle Image Upload
+  const handleImageChange = (index, file) => {
+    const updatedSections = [...sectionData];
+    updatedSections[index].image = file;
+    setSectionData(updatedSections);
   };
 
   // Handle form submission
@@ -36,230 +62,104 @@ const CreateNewsletter = () => {
     const form = new FormData();
     form.append('title', formData.title);
     form.append('heading', formData.heading);
-    form.append('firstpara', formData.firstpara);
-    form.append('secondpara', formData.secondpara);
-    form.append('firstimage', formData.firstimage);
-    form.append('secondimage', formData.secondimage);
-    form.append('date', formData.date); // Append the publish date
+    form.append('date', formData.date);
+    form.append('sections', JSON.stringify(sectionData));
+
+    sectionData.forEach((section, index) => {
+      if (section.image) {
+        form.append(`photo${index}`, section.image); // Consistent naming
+      }
+    });
 
     try {
       const response = await axios.post(
-        'https://api.gkcc.world/api/newsletter/add',
+        ' http://localhost:5001/api/newsletter/add',
         form,
         {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+          headers: { 'Content-Type': 'multipart/form-data' },
         }
       );
 
       if (response.status === 200) {
         setAlert({ type: 'success', message: 'Newsletter created successfully!' });
-        setFormData({
-          title: '',
-          heading: '',
-          firstpara: '',
-          secondpara: '',
-          firstimage: null,
-          secondimage: null,
-          date: '', // Reset the publish date
-        });
+        setFormData({ title: '', heading: '', date: '', sections: [] });
+        setNumSections(0);
+        setSectionData([]);
       } else {
-        setAlert({
-          type: 'error',
-          message: response.data.message || 'Failed to create the newsletter.',
-        });
+        setAlert({ type: 'error', message: 'Failed to create the newsletter.' });
       }
     } catch (error) {
-      console.error('Error submitting the form:', error);
+      console.error(error);
       setAlert({
         type: 'error',
-        message:
-          error.response?.data?.message ||
-          'An unexpected error occurred while submitting the form.',
+        message: error.response?.data?.message || 'An unexpected error occurred.',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Custom Alert Component
-  const Alert = ({ type, message, onClose }) => {
-    const alertStyle =
-      type === 'success'
-        ? 'bg-green-100 border-green-500 text-green-700'
-        : 'bg-red-100 border-red-500 text-red-700';
-
-    return (
-      <div
-        className={`border-l-4 p-4 mb-4 ${alertStyle} flex justify-between items-center`}
-        role="alert"
-      >
-        <span>{message}</span>
-        <button
-          onClick={onClose}
-          className="text-sm text-gray-600 hover:text-gray-800"
-        >
-          ✖
-        </button>
-      </div>
-    );
-  };
-
   return (
-    <div className="w-full max-w-xl mx-auto bg-white border border-gray-300 rounded-lg p-6 shadow-xl">
-      <h2 className="text-center text-3xl font-semibold text-blue-500 mb-4">
-        Create Newsletter
-      </h2>
+    <div className="w-full max-w-2xl mx-auto bg-white border border-gray-300 rounded-lg p-6 shadow-xl">
+      <h2 className="text-center text-3xl font-semibold text-blue-500 mb-4">Create Newsletter</h2>
 
       {/* Custom Alert */}
       {alert.message && (
-        <Alert
-          type={alert.type}
-          message={alert.message}
-          onClose={() => setAlert({ type: '', message: '' })}
-        />
+        <div className={`border-l-4 p-4 mb-4 ${alert.type === 'success' ? 'bg-green-100 border-green-500 text-green-700' : 'bg-red-100 border-red-500 text-red-700'}`}>
+          <span>{alert.message}</span>
+          <button onClick={() => setAlert({ type: '', message: '' })} className="text-sm text-gray-600 hover:text-gray-800">✖</button>
+        </div>
       )}
 
       <form onSubmit={handleSubmit}>
-        {/* Title Input */}
+        {/* Title */}
         <div className="mb-4">
-          <label htmlFor="title" className="block text-gray-700 font-medium mb-2">
-            Title <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:ring focus:ring-blue-500"
-            required
-          />
+          <label className="block text-gray-700 mb-2">Title</label>
+          <input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full border px-4 py-2" required />
         </div>
 
-        {/* Heading Input */}
+        {/* Heading */}
         <div className="mb-4">
-          <label
-            htmlFor="heading"
-            className="block text-gray-700 font-medium mb-2"
-          >
-            Heading <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="heading"
-            name="heading"
-            value={formData.heading}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:ring focus:ring-blue-500"
-            required
-          />
+          <label className="block text-gray-700 mb-2">Heading</label>
+          <input type="text" name="heading" value={formData.heading} onChange={handleChange} className="w-full border px-4 py-2" required />
         </div>
 
-        {/* First Paragraph */}
+        {/* Date */}
         <div className="mb-4">
-          <label
-            htmlFor="firstpara"
-            className="block text-gray-700 font-medium mb-2"
-          >
-            First Paragraph <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            id="firstpara"
-            name="firstpara"
-            value={formData.firstpara}
-            onChange={handleChange}
-            rows="4"
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:ring focus:ring-blue-500"
-            required
-          ></textarea>
+          <label className="block text-gray-700 mb-2">Publish Date</label>
+          <input type="date" name="date" value={formData.date} onChange={handleChange} className="w-full border px-4 py-2" required />
         </div>
 
-        {/* Second Paragraph */}
+        {/* Number of Sections */}
         <div className="mb-4">
-          <label
-            htmlFor="secondpara"
-            className="block text-gray-700 font-medium mb-2"
-          >
-            Second Paragraph <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            id="secondpara"
-            name="secondpara"
-            value={formData.secondpara}
-            onChange={handleChange}
-            rows="4"
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:ring focus:ring-blue-500"
-            required
-          ></textarea>
+          <label className="block text-gray-700 mb-2">Number of Sections</label>
+          <select value={numSections} onChange={handleNumSectionsChange} className="w-full border px-4 py-2">
+            <option value="">-- Select --</option>
+            {[...Array(10)].map((_, i) => <option key={i} value={i + 1}>{i + 1}</option>)}
+          </select>
         </div>
 
-        {/* First Image */}
-        <div className="mb-4">
-          <label
-            htmlFor="firstimage"
-            className="block text-gray-700 font-medium mb-2"
-          >
-            First Image <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="file"
-            id="firstimage"
-            name="firstimage"
-            onChange={handleFileChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:ring focus:ring-blue-500"
-            accept="image/*"
-            required
-          />
-        </div>
+        {/* Sections */}
+        {sectionData.map((section, index) => (
+          <div key={index} className="mb-4 border-t pt-4">
+            <h3 className="text-lg">Section {index + 1}</h3>
+            <label className="block text-gray-700 mb-2">Type</label>
+            <select value={section.type} onChange={(e) => handleSectionTypeChange(index, e.target.value)} className="w-full border px-4 py-2 mb-4">
+              <option value="">-- Select --</option>
+              <option value="paragraph">Paragraph</option>
+              <option value="image">Image</option>
+              <option value="both">Both</option>
+            </select>
+            {section.type.includes('paragraph') && (
+              <textarea placeholder="Enter paragraph" value={section.content} onChange={(e) => handleContentChange(index, e.target.value)} rows="3" className="w-full border px-4 py-2 mb-4"></textarea>
+            )}
+            {section.type.includes('image') && (
+              <input type="file" accept="image/*" onChange={(e) => handleImageChange(index, e.target.files[0])} className="w-full border px-4 py-2" />
+            )}
+          </div>
+        ))}
 
-        {/* Second Image */}
-        <div className="mb-4">
-          <label
-            htmlFor="secondimage"
-            className="block text-gray-700 font-medium mb-2"
-          >
-            Second Image <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="file"
-            id="secondimage"
-            name="secondimage"
-            onChange={handleFileChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:ring focus:ring-blue-500"
-            accept="image/*"
-            required
-          />
-        </div>
-
-        {/* Publish Date */}
-        <div className="mb-4">
-          <label
-            htmlFor="date"
-            className="block text-gray-700 font-medium mb-2"
-          >
-            Publish Date <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="date"
-            id="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:ring focus:ring-blue-500"
-            required
-          />
-        </div>
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className={`w-full mt-8 py-2 rounded-lg text-white ${
-            isSubmitting ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'
-          } transition`}
-          disabled={isSubmitting}
-        >
+        <button type="submit" disabled={isSubmitting} className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded">
           {isSubmitting ? 'Submitting...' : 'Create Newsletter'}
         </button>
       </form>
